@@ -28,6 +28,8 @@ Build
 Use
 ===
 
-    val node = new Xml("<root><child/><child/></root>").parse
+```scala
+val node = new Xml("<root><child/><child/></root>").parse
+```
 
 see [dist/example.html](dist/example.html) for usage in the browser.
