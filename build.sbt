@@ -10,6 +10,7 @@ lazy val common = Seq(
   organization := "com.flowtick",
   scalaVersion := scalaV,
   crossScalaVersions := Seq(scalaV, "2.11.11"),
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
   releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
     inquireVersions,
@@ -18,10 +19,10 @@ lazy val common = Seq(
     setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
-    releaseStepCommand("+ publishSigned"),
+    releaseStepCommandAndRemaining("^ publishSigned"),
     setNextVersion,
     commitNextVersion,
-    releaseStepCommand("sonatypeReleaseAll"),
+    releaseStepCommandAndRemaining("sonatypeReleaseAll"),
     pushChanges
   ),
   publishTo := Some(
