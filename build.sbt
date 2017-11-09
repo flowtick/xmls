@@ -50,7 +50,8 @@ lazy val root = project.in(file(".")).
   aggregate(xmlsJS, xmlsJVM).
   settings(
     publish := {},
-    publishLocal := {}
+    publishLocal := {},
+    PgpKeys.publishSigned := {}
   )
 
 lazy val xmls = crossProject.in(file(".")).
