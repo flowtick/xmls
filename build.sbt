@@ -20,7 +20,7 @@ lazy val common = Seq(
     setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
-    releaseStepTask(PgpKeys.publishSigned),
+    publishArtifacts,
     setNextVersion,
     commitNextVersion,
     releaseStepCommandAndRemaining("sonatypeReleaseAll"),
