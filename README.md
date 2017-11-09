@@ -29,7 +29,14 @@ Use
 ===
 
 ```scala
+import xmls.Xml
+
 val node = new Xml("<root><child/><child/></root>").parse
 ```
 
 see [dist/example.html](dist/example.html) for usage in the browser.
+
+License
+=======
+
+Apache License Version 2.0, see [LICENSE](LICENSE)

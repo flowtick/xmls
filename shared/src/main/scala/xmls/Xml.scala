@@ -3,7 +3,7 @@ package xmls
 import org.parboiled2._
 
 import scala.scalajs.js.annotation.JSExportAll
-import scala.util.Try
+import scala.util.{ Failure, Success }
 
 @JSExportAll
 final case class Opening(name: String, attrs: Seq[Attribute], closed: Boolean, prefix: Option[String] = None)
@@ -36,15 +36,13 @@ class XmlParserError(errorMessage: String, cause: Option[Throwable] = None) exte
 @JSExportAll
 class Xml(val input: ParserInput) extends Parser {
 
-  def parse: Either[XmlParserError, Node] = {
-    val parserResult: Try[Node] = root.run()
-
-    parserResult.toEither.left.map {
-      case xmlParserError: XmlParserError => xmlParserError
-      case parseError: ParseError => new XmlParserError(formatError(parseError, new ErrorFormatter(showTraces = true)))
-      case exception: Throwable => new XmlParserError(exception.getMessage, Some(exception))
+  def parse: Either[XmlParserError, Node] =
+    root.run() match {
+      case Success(node) => Right(node)
+      case Failure(error: XmlParserError) => Left(error)
+      case Failure(parseError: ParseError) => Left(new XmlParserError(formatError(parseError, new ErrorFormatter(showTraces = true))))
+      case Failure(error) => Left(new XmlParserError(error.getMessage, Some(error)))
     }
-  }
 
   def root: Rule1[Node] = rule {
     whitespace ~ optional(xmlHeader) ~ (nodeWithChildren | singleNode) ~ whitespace ~ EOI
