@@ -2,8 +2,10 @@ xmls
 ====
 
 [![Scala.js](https://img.shields.io/badge/scala.js-0.6.20%2B-blue.svg)](https://www.scala-js.org)
+[![travis](https://travis-ci.org/flowtick/xmls.svg?branch=master)](https://travis-ci.org/flowtick/xmls)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.flowtick/xmls/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.flowtick/xmls)
 
-A simple xml parser for Scala(.js) based on parboiled2.
+A simple xml parser for Scala(.js) based on [parboiled2](https://github.com/sirthias/parboiled2).
 
 Why?
 ===
