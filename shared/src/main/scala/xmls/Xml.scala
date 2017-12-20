@@ -6,7 +6,7 @@ import scala.scalajs.js.annotation.JSExportAll
 import scala.util.{ Failure, Success }
 
 @JSExportAll
-final case class Opening(name: String, attrs: Seq[Attribute], closed: Boolean, prefix: Option[String] = None)
+final case class Opening(name: String, attrs: Seq[Attribute], prefix: Option[String] = None)
 @JSExportAll
 final case class Closing(name: Option[String], prefix: Option[String] = None)
 @JSExportAll
@@ -49,7 +49,7 @@ class Xml(val input: ParserInput) extends Parser {
   }
 
   def xmlHeader = rule {
-    "<?" ~ whitespace ~ ("xml" | "XML") ~ oneOrMore((CharPredicate.Visible -- "?") | " ") ~ "?>"
+    "<?" ~ whitespace ~ ("xml" | "XML") ~ oneOrMore((visibleCharacter -- "?") | " ") ~ "?>"
   }
 
   def nodeWithChildren: Rule1[Node] = rule {
@@ -57,10 +57,6 @@ class Xml(val input: ParserInput) extends Parser {
       if (closing.name.exists(closeTag => !opening.name.equals(closeTag))) throw new XmlParserError(s"opening ($opening) and closing ($closing) tag dont match")
       else Node(opening.name, opening.attrs, children, opening.prefix)
     })
-  }
-
-  def singleNode: Rule1[Node] = rule {
-    whitespace ~ closedOpening ~> ((opening: Opening) => Node(opening.name, opening.attrs, Seq.empty, opening.prefix))
   }
 
   def cdata: Rule1[Element] = rule {
@@ -75,16 +71,20 @@ class Xml(val input: ParserInput) extends Parser {
     capture(text) ~> ((value: String) => Text(value))
   }
 
-  def opening: Rule1[Opening] = rule {
-    '<' ~ optional(prefix) ~ capture(identifier) ~ zeroOrMore(attribute) ~ whitespace ~ '>' ~> ((prefix: Option[String], name: String, attributes: Seq[Attribute]) => Opening(name, attributes, false, prefix))
-  }
-
-  def closedOpening: Rule1[Opening] = rule {
-    '<' ~ optional(prefix) ~ capture(identifier) ~ zeroOrMore(attribute) ~ whitespace ~ "/>" ~> ((prefix: Option[String], name: String, attributes: Seq[Attribute]) => Opening(name, attributes, true, prefix))
-  }
-
   def prefix = rule {
     capture(identifier) ~ ":"
+  }
+
+  def tag = rule {
+    optional(prefix) ~ capture(identifier) ~ zeroOrMore(attribute) ~ whitespace
+  }
+
+  def singleNode: Rule1[Node] = rule {
+    whitespace ~ '<' ~ tag ~ "/>" ~> ((prefix: Option[String], name: String, attributes: Seq[Attribute]) => Node(name, attributes, Seq.empty, prefix))
+  }
+
+  def opening: Rule1[Opening] = rule {
+    '<' ~ tag ~ '>' ~> ((prefix: Option[String], name: String, attributes: Seq[Attribute]) => Opening(name, attributes, prefix))
   }
 
   def closing = rule {
@@ -94,27 +94,29 @@ class Xml(val input: ParserInput) extends Parser {
   def attribute: Rule1[Attribute] = rule {
     whitespace ~ optional(prefix) ~ capture(identifier) ~
       optional(whitespace ~ '=' ~ whitespace ~ ('"' ~ optional(capture(attrributeText)) ~ '"' | "'" ~ optional(capture(attrributeTextSingleQuoted)) ~ "'")) ~>
-      ((prefix: Option[String], name: String, value: Option[Option[String]]) => Attribute(name, value.getOrElse(None), prefix))
+      ((prefix: Option[String], name: String, value: Option[Option[String]]) => Attribute(name, value.flatten, prefix))
   }
 
+  def visibleCharacter = CharPredicate.All
+
   def text = rule {
-    oneOrMore((CharPredicate.Visible -- '<' -- '>') | whiteSpaceChar)
+    oneOrMore((visibleCharacter -- '<' -- '>') | whiteSpaceChar)
   }
 
   def attrributeText = rule {
-    oneOrMore((CharPredicate.Visible -- '"' -- '<') | whiteSpaceChar)
+    oneOrMore((visibleCharacter -- '"' -- '<') | whiteSpaceChar)
   }
 
   def attrributeTextSingleQuoted = rule {
-    oneOrMore((CharPredicate.Visible -- "'" -- '<') | whiteSpaceChar)
+    oneOrMore((visibleCharacter -- "'" -- '<') | whiteSpaceChar)
   }
 
   def commentContent = rule {
-    oneOrMore(!"-->" ~ CharPredicate.Visible | !"-->" ~ whiteSpaceChar)
+    oneOrMore(!"-->" ~ visibleCharacter | !"-->" ~ whiteSpaceChar)
   }
 
   def cdataContent = rule {
-    oneOrMore(!"]]>" ~ CharPredicate.Visible | !"]]>" ~ whiteSpaceChar)
+    oneOrMore(!"]]>" ~ visibleCharacter | !"]]>" ~ whiteSpaceChar)
   }
 
   def identifier = rule {
