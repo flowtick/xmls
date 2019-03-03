@@ -32,9 +32,9 @@ Use
 ===
 
 ```scala
-import xmls.Xml
+import xmls._
 
-val node = new Xml("<root><child/><child/></root>").parse
+val parsed: Either[XmlParserError, scala.xml.Node] = XMLS.parse("<root><child/><child/></root>")
 ```
 
 see [dist/example.html](dist/example.html) for usage in the browser.
