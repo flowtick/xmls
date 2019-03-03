@@ -1,7 +1,7 @@
 import sbt.url
 import sbtrelease.ReleaseStateTransformations._
 
-val scalaV = "2.12.4"
+val scalaV = "2.12.8"
 
 scalacOptions += "-P:scalajs:sjsDefinedByDefault"
 
@@ -9,7 +9,7 @@ lazy val common = Seq(
   name := "xmls",
   organization := "com.flowtick",
   scalaVersion := scalaV,
-  crossScalaVersions := Seq(scalaV, "2.11.11"),
+  crossScalaVersions := Seq(scalaV, "2.11.12"),
   releasePublishArtifactsAction := PgpKeys.publishSigned.value,
   releaseCrossBuild := true,
   releaseProcess := Seq[ReleaseStep](
@@ -58,9 +58,10 @@ lazy val root = project.in(file(".")).
 lazy val xmls = crossProject.in(file(".")).
   settings(common).
   settings(
-    libraryDependencies += "org.parboiled" %%% "parboiled" % "2.1.4",
-    libraryDependencies += "com.chuusai" %%% "shapeless" % "2.3.2",
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.3" % Test,
+    libraryDependencies += "org.parboiled" %%% "parboiled" % "2.1.5",
+    libraryDependencies += "com.chuusai" %%% "shapeless" % "2.3.3",
+    libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "1.1.1",
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.6" % Test,
     libraryDependencies += "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
   )
 
