@@ -4,39 +4,20 @@ import org.parboiled2._
 
 import scala.scalajs.js.annotation.JSExportAll
 import scala.util.{ Failure, Success }
+import scala.xml._
 
 @JSExportAll
-final case class Opening(name: String, attrs: Seq[Attribute], prefix: Option[String] = None)
+final case class Opening(name: String, attrs: Seq[MetaData], prefix: Option[String] = None)
 @JSExportAll
 final case class Closing(name: Option[String], prefix: Option[String] = None)
-@JSExportAll
-final case class Attribute(name: String, value: Option[String], prefix: Option[String] = None)
-
-trait Element
-
-trait XmlNode[ListType[_], AttributeType] extends Element {
-  def name: String
-  def attrs: ListType[AttributeType]
-  def children: ListType[Element]
-  def prefix: Option[String]
-}
-
-@JSExportAll
-final case class Node(name: String, attrs: Seq[Attribute], children: Seq[Element], prefix: Option[String] = None) extends XmlNode[Seq, Attribute]
-@JSExportAll
-final case class Comment(text: String) extends Element
-@JSExportAll
-final case class CharacterData(text: String) extends Element
-@JSExportAll
-final case class Text(value: String) extends Element
 
 @JSExportAll
 class XmlParserError(errorMessage: String, cause: Option[Throwable] = None) extends RuntimeException(errorMessage, cause.orNull)
 
 @JSExportAll
-class Xml(val input: ParserInput) extends Parser {
+class XmlParser(val input: ParserInput) extends Parser {
 
-  def parse: Either[XmlParserError, Node] =
+  def parse: Either[XmlParserError, scala.xml.Node] =
     root.run() match {
       case Success(node) => Right(node)
       case Failure(error: XmlParserError) => Left(error)
@@ -44,7 +25,7 @@ class Xml(val input: ParserInput) extends Parser {
       case Failure(error) => Left(new XmlParserError(error.getMessage, Some(error)))
     }
 
-  def root: Rule1[Node] = rule {
+  def root: Rule1[scala.xml.Node] = rule {
     whitespace ~ optional(xmlHeader) ~ (nodeWithChildren | singleNode) ~ whitespace ~ EOI
   }
 
@@ -52,23 +33,23 @@ class Xml(val input: ParserInput) extends Parser {
     "<?" ~ whitespace ~ ("xml" | "XML") ~ oneOrMore((visibleCharacter -- "?") | " ") ~ "?>"
   }
 
-  def nodeWithChildren: Rule1[Node] = rule {
-    whitespace ~ opening ~ whitespace ~ zeroOrMore(textElement | comment | cdata | nodeWithChildren | singleNode) ~ whitespace ~ closing ~> ((opening: Opening, children: Seq[Element], closing: Closing) => {
+  def nodeWithChildren: Rule1[scala.xml.Node] = rule {
+    whitespace ~ opening ~ whitespace ~ zeroOrMore(textElement | comment | cdata | nodeWithChildren | singleNode) ~ whitespace ~ closing ~> ((opening: Opening, children: Seq[scala.xml.Node], closing: Closing) => {
       if (closing.name.exists(closeTag => !opening.name.equals(closeTag))) throw new XmlParserError(s"opening ($opening) and closing ($closing) tag dont match")
-      else Node(opening.name, opening.attrs, children, opening.prefix)
+      else scala.xml.Elem(opening.prefix.orNull, opening.name, opening.attrs.headOption.map(first => opening.attrs.tail.foldLeft(first)(_ append _)).getOrElse(Null), TopScope, children: _*)
     })
   }
 
-  def cdata: Rule1[Element] = rule {
-    whitespace ~ "<![" ~ ("CDATA" | "cdata" | "CData" | "cData") ~ "[" ~ capture(cdataContent) ~ "]]>" ~> ((text: String) => CharacterData(text))
+  def cdata: Rule1[scala.xml.PCData] = rule {
+    whitespace ~ "<![" ~ ("CDATA" | "cdata" | "CData" | "cData") ~ "[" ~ capture(cdataContent) ~ "]]>" ~> ((text: String) => PCData(text))
   }
 
-  def comment: Rule1[Element] = rule {
-    whitespace ~ "<!--" ~ capture(commentContent) ~ "-->" ~> ((text: String) => Comment(text))
+  def comment: Rule1[scala.xml.Comment] = rule {
+    whitespace ~ "<!--" ~ capture(commentContent) ~ "-->" ~> ((text: String) => scala.xml.Comment(text))
   }
 
-  def textElement: Rule1[Text] = rule {
-    capture(text) ~> ((value: String) => Text(value))
+  def textElement: Rule1[scala.xml.Text] = rule {
+    capture(text) ~> ((value: String) => scala.xml.Text(value))
   }
 
   def prefix = rule {
@@ -79,22 +60,22 @@ class Xml(val input: ParserInput) extends Parser {
     optional(prefix) ~ capture(identifier) ~ zeroOrMore(attribute) ~ whitespace
   }
 
-  def singleNode: Rule1[Node] = rule {
-    whitespace ~ '<' ~ tag ~ "/>" ~> ((prefix: Option[String], name: String, attributes: Seq[Attribute]) => Node(name, attributes, Seq.empty, prefix))
+  def singleNode: Rule1[scala.xml.Node] = rule {
+    whitespace ~ '<' ~ tag ~ "/>" ~> ((prefix: Option[String], name: String, attributes: Seq[MetaData]) => scala.xml.Elem(prefix.orNull, name, Null, TopScope, false, Seq.empty[scala.xml.Node]: _*))
   }
 
   def opening: Rule1[Opening] = rule {
-    '<' ~ tag ~ '>' ~> ((prefix: Option[String], name: String, attributes: Seq[Attribute]) => Opening(name, attributes, prefix))
+    '<' ~ tag ~ '>' ~> ((prefix: Option[String], name: String, attributes: Seq[MetaData]) => Opening(name, attributes, prefix))
   }
 
   def closing = rule {
     "</" ~ optional(prefix) ~ capture(identifier) ~ '>' ~> ((prefix: Option[String], tagName: String) => Closing(Some(tagName), prefix))
   }
 
-  def attribute: Rule1[Attribute] = rule {
+  def attribute: Rule1[MetaData] = rule {
     whitespace ~ optional(prefix) ~ capture(identifier) ~
       optional(whitespace ~ '=' ~ whitespace ~ ('"' ~ optional(capture(attrributeText)) ~ '"' | "'" ~ optional(capture(attrributeTextSingleQuoted)) ~ "'")) ~>
-      ((prefix: Option[String], name: String, value: Option[Option[String]]) => Attribute(name, value.flatten, prefix))
+      ((prefix: Option[String], name: String, value: Option[Option[String]]) => Attribute.apply(prefix, name, value.flatten.toSeq.map(Text.apply), Null))
   }
 
   def visibleCharacter = CharPredicate.All

@@ -8,7 +8,7 @@ import scala.io.Source.fromInputStream
 
 class LargeXmlSpec extends FlatSpec with Matchers with BenchmarkSupport {
   it should "parse large BPMN 2.0 XML" in {
-    val node = logMinTime("large bpmn xml", 50, println)(() => new Xml(fromInputStream(classpathFile("large-bpmn.xml")).getLines().mkString("\n")).parse)
+    val node = logMinTime("large bpmn xml", 50, println)(() => new XmlParser(fromInputStream(classpathFile("large-bpmn.xml")).getLines().mkString("\n")).parse)
 
     node.get.isRight should be(true)
   }

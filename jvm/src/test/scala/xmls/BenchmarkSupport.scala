@@ -20,7 +20,7 @@ trait BenchmarkSupport {
       }
     }
 
-    log(s"minimum duration time ($name): $minDuration")
+    log(s"minimum duration time ($name): $minDuration ms")
 
     currentResult
   }
