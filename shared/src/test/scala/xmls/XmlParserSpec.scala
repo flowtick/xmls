@@ -65,6 +65,20 @@ class XmlParserSpec extends FlatSpec with Matchers {
     node.attribute("attr4") should be(Some(Seq(Text("singleQuoted"))))
   }
 
+  it should "parse attributes on self-closing element" in {
+    val node = new XmlParser(s"""<element attr1 attr_underscore attr-dash attr2="value" attr3 = "anotherValue" attr4='singleQuoted'/>""").parse.right.get
+
+    node.label should equal("element")
+
+    node.attribute("notanattribute") should be(None)
+    node.attribute("attr_underscore") should be(Some(Seq.empty))
+    node.attribute("attr-dash") should be(Some(Seq.empty))
+    node.attribute("attr1") should be(Some(Seq.empty))
+    node.attribute("attr2") should be(Some(Seq(Text("value"))))
+    node.attribute("attr3") should be(Some(Seq(Text("anotherValue"))))
+    node.attribute("attr4") should be(Some(Seq(Text("singleQuoted"))))
+  }
+
   it should "parse text" in {
     val node = new XmlParser(s"""<text>some text</text>""").parse.right.get
 

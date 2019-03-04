@@ -15,7 +15,7 @@ final case class Closing(name: Option[String], prefix: Option[String] = None)
 class XmlParserError(errorMessage: String, cause: Option[Throwable] = None) extends RuntimeException(errorMessage, cause.orNull)
 
 @JSExportAll
-class XmlParser(val input: ParserInput) extends Parser {
+class XmlParser(val input: ParserInput, minimizeEmpty: Boolean = false) extends Parser {
 
   def parse: Either[XmlParserError, scala.xml.Node] =
     root.run() match {
@@ -33,15 +33,19 @@ class XmlParser(val input: ParserInput) extends Parser {
     "<?" ~ whitespace ~ ("xml" | "XML") ~ oneOrMore((visibleCharacter -- "?") | " ") ~ "?>"
   }
 
+  private def foldAttributes(attrs: Seq[MetaData]) = {
+    attrs.headOption.map(first => attrs.tail.foldLeft(first)(_ append _)).getOrElse(Null)
+  }
+
   def nodeWithChildren: Rule1[scala.xml.Node] = rule {
     whitespace ~ opening ~ whitespace ~ zeroOrMore(textElement | comment | cdata | nodeWithChildren | singleNode) ~ whitespace ~ closing ~> ((opening: Opening, children: Seq[scala.xml.Node], closing: Closing) => {
       if (closing.name.exists(closeTag => !opening.name.equals(closeTag))) throw new XmlParserError(s"opening ($opening) and closing ($closing) tag dont match")
-      else scala.xml.Elem(opening.prefix.orNull, opening.name, opening.attrs.headOption.map(first => opening.attrs.tail.foldLeft(first)(_ append _)).getOrElse(Null), TopScope, children: _*)
+      else scala.xml.Elem(opening.prefix.orNull, opening.name, foldAttributes(opening.attrs), TopScope, minimizeEmpty, children: _*)
     })
   }
 
-  def cdata: Rule1[scala.xml.PCData] = rule {
-    whitespace ~ "<![" ~ ("CDATA" | "cdata" | "CData" | "cData") ~ "[" ~ capture(cdataContent) ~ "]]>" ~> ((text: String) => PCData(text))
+  def cdata: Rule1[scala.xml.Text] = rule {
+    whitespace ~ "<![" ~ ("CDATA" | "cdata" | "CData" | "cData") ~ "[" ~ capture(cdataContent) ~ "]]>" ~> ((text: String) => Text(text))
   }
 
   def comment: Rule1[scala.xml.Comment] = rule {
@@ -61,7 +65,7 @@ class XmlParser(val input: ParserInput) extends Parser {
   }
 
   def singleNode: Rule1[scala.xml.Node] = rule {
-    whitespace ~ '<' ~ tag ~ "/>" ~> ((prefix: Option[String], name: String, attributes: Seq[MetaData]) => scala.xml.Elem(prefix.orNull, name, Null, TopScope, false, Seq.empty[scala.xml.Node]: _*))
+    whitespace ~ '<' ~ tag ~ "/>" ~> ((prefix: Option[String], name: String, attributes: Seq[MetaData]) => scala.xml.Elem(prefix.orNull, name, foldAttributes(attributes), TopScope, minimizeEmpty))
   }
 
   def opening: Rule1[Opening] = rule {
