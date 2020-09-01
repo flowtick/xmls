@@ -2,11 +2,12 @@ package xmls
 
 import java.io.InputStream
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.io.Source.fromInputStream
 
-class LargeXmlSpec extends FlatSpec with Matchers with BenchmarkSupport {
+class LargeXmlSpec extends AnyFlatSpec with Matchers with BenchmarkSupport {
   it should "parse large BPMN 2.0 XML" in {
     val node = logMinTime("large bpmn xml", 50, println)(() => new XmlParser(fromInputStream(classpathFile("large-bpmn.xml")).getLines().mkString("\n")).parse)
 

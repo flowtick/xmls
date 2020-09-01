@@ -1,7 +1,7 @@
 import sbt.url
 import sbtrelease.ReleaseStateTransformations._
 
-val scalaV = "2.12.10"
+val scalaV = "2.12.12"
 
 scalacOptions += "-P:scalajs:sjsDefinedByDefault"
 
@@ -9,7 +9,7 @@ lazy val common = Seq(
   name := "xmls",
   organization := "com.flowtick",
   scalaVersion := scalaV,
-  crossScalaVersions := Seq(scalaV, "2.13.0"),
+  crossScalaVersions := Seq(scalaV, "2.13.3"),
   releasePublishArtifactsAction := PgpKeys.publishSigned.value,
   releaseCrossBuild := true,
   releaseProcess := Seq[ReleaseStep](
@@ -55,14 +55,14 @@ lazy val root = project.in(file(".")).
     PgpKeys.publishSigned := {}
   )
 
-lazy val xmls = crossProject.in(file(".")).
+lazy val xmls = crossProject(JSPlatform, JVMPlatform).in(file(".")).
   settings(common).
   settings(
-    libraryDependencies += "org.parboiled" %%% "parboiled" % "2.1.7",
+    libraryDependencies += "org.parboiled" %%% "parboiled" % "2.2.0",
     libraryDependencies += "com.chuusai" %%% "shapeless" % "2.3.3" % Provided,
-    libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "1.2.0",
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.8" % Test,
-    libraryDependencies += "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % Provided
+    libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "1.3.0",
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.2" % Test,
+    libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.0.0" % Provided
   )
 
 lazy val xmlsJVM = xmls.jvm

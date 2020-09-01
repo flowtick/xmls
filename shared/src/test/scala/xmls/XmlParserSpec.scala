@@ -1,10 +1,11 @@
 package xmls
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.xml.{ PCData, Text }
 
-class XmlParserSpec extends FlatSpec with Matchers {
+class XmlParserSpec extends AnyFlatSpec with Matchers {
   "A xml parser" should "parse single root" in {
     val parsed = new XmlParser("<a></a>").parse
     val node = parsed.right.get
