@@ -2,7 +2,7 @@ xmls
 ====
 
 [![travis](https://travis-ci.org/flowtick/xmls.svg?branch=master)](https://travis-ci.org/flowtick/xmls)
-[![latest release for 2.12](https://img.shields.io/maven-central/v/com.flowtick/xmls_2.12.svg?label=Scala+2.12)](http://mvnrepository.com/artifact/com.flowtick/xmls_2.12)
+[![latest release for 2.13](https://img.shields.io/maven-central/v/com.flowtick/xmls_2.13.svg?label=Scala+2.13)](http://mvnrepository.com/artifact/com.flowtick/xmls_2.13)
 
 A simple xml parser for Scala(.js) based on [parboiled2](https://github.com/sirthias/parboiled2).
 
