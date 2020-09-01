@@ -1,38 +1,11 @@
 import sbt.url
-import sbtrelease.ReleaseStateTransformations._
 
 val scalaV = "2.12.12"
 
 scalacOptions += "-P:scalajs:sjsDefinedByDefault"
 
-lazy val common = Seq(
-  name := "xmls",
+inThisBuild(List(
   organization := "com.flowtick",
-  scalaVersion := scalaV,
-  crossScalaVersions := Seq(scalaV, "2.13.3"),
-  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-  releaseCrossBuild := true,
-  releaseProcess := Seq[ReleaseStep](
-    checkSnapshotDependencies,
-    inquireVersions,
-    runClean,
-    runTest,
-    setReleaseVersion,
-    commitReleaseVersion,
-    tagRelease,
-    publishArtifacts,
-    setNextVersion,
-    commitNextVersion,
-    releaseStepCommandAndRemaining("sonatypeReleaseAll"),
-    pushChanges
-  ),
-  publishTo := Some(
-    if (isSnapshot.value)
-      Opts.resolver.sonatypeSnapshots
-    else
-      Opts.resolver.sonatypeStaging
-  ),
-  publishMavenStyle := true,
   licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
   homepage := Some(url("https://github.com/flowtick/xmls")),
   scmInfo := Some(
@@ -44,6 +17,12 @@ lazy val common = Seq(
   developers := List(
     Developer(id = "adrobisch", name = "Andreas Drobisch", email = "github@drobisch.com", url = url("http://drobisch.com/"))
   )
+))
+
+lazy val common = Seq(
+  name := "xmls",
+  scalaVersion := scalaV,
+  crossScalaVersions := Seq(scalaV, "2.13.3")
 )
 
 lazy val root = project.in(file(".")).
