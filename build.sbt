@@ -2,7 +2,9 @@ import sbt.url
 
 val scalaV = "2.12.12"
 
-scalacOptions += "-P:scalajs:sjsDefinedByDefault"
+scalacOptions ++= Seq(
+  "-P:scalajs:sjsDefinedByDefault"
+)
 
 inThisBuild(List(
   organization := "com.flowtick",
